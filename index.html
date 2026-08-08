@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EduCGPA - Smart GPA & CGPA Calculator</title>
+
+    <!-- Webpage Icon (Favicon) -->
+    <link rel="icon" type="image/svg+xml"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M32 6 4 20l28 14 22-11v15h4V20L32 6zm-14 24v10c0 6 8 12 14 12s14-6 14-12V30L32 39 18 30z'/%3E%3C/svg%3E">
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>
+                <i class="fa-solid fa-graduation-cap"></i>
+                EduCGPA
+            </h1>
+
+            <p>Calculate. Track. Achieve.</p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- GPA SECTION -->
+        <section class="card gpa-card">
+            <div class="card-header">
+                <i class="fa-solid fa-book-open"></i>
+
+                <div>
+                    <h2>GPA Calculator</h2>
+                    <p>Calculate your semester GPA using subject grade and credit points.</p>
+                </div>
+            </div>
+
+            <div class="calculator-grid">
+
+                <div class="form-panel">
+                    <label>Subject</label>
+                    <input type="text" id="subjectName" placeholder="Enter subject name">
+
+                    <label>Grade</label>
+                    <select id="subjectGrade">
+                        <option value="10">O (10.00)</option>
+                        <option value="9">A+ (9.00)</option>
+                        <option value="8">A (8.00)</option>
+                        <option value="7">B+ (7.00)</option>
+                        <option value="6">B (6.00)</option>
+                        <option value="5">C (5.00)</option>
+                        <option value="0">U (0.00)</option>
+                    </select>
+
+                    <label>Credit</label>
+                    <input type="number" id="subjectCredit" placeholder="Enter credit points">
+
+                    <button class="primary-btn" onclick="addSubject()">
+                        <i class="fa-solid fa-plus"></i>
+                        Add / Update Subject
+                    </button>
+                </div>
+
+                <div class="table-panel">
+                    <h3>
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        Added Subjects
+                    </h3>
+
+                    <div class="table-wrapper">
+                        <table id="gpaTable">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Grade</th>
+                                    <th>Credit</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="result-box blue">
+                        <span>
+                            <i class="fa-solid fa-chart-pie"></i>
+                            GPA (Semester)
+                        </span>
+
+                        <strong id="gpaResult">0.00</strong>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="primary-btn" onclick="calculateGPA()">
+                            <i class="fa-solid fa-calculator"></i>
+                            Calculate GPA
+                        </button>
+
+                        <button class="secondary-btn" onclick="resetGPA()">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CGPA SECTION -->
+        <section class="card cgpa-card">
+            <div class="card-header">
+                <i class="fa-solid fa-chart-line"></i>
+
+                <div>
+                    <h2>CGPA Calculator</h2>
+                    <p>Calculate your overall CGPA using semester GPA values.</p>
+                </div>
+            </div>
+
+            <div class="calculator-grid">
+
+                <div class="form-panel">
+                    <label>Semester</label>
+                    <input type="text" id="semesterName" placeholder="e.g., Semester 1">
+
+                    <label>GPA</label>
+                    <input type="number" id="semesterGPA" step="0.01" placeholder="e.g., 7.85">
+
+                    <button class="success-btn" onclick="addSemester()">
+                        <i class="fa-solid fa-plus"></i>
+                        Add / Update Semester GPA
+                    </button>
+                </div>
+
+                <div class="table-panel">
+                    <h3>
+                        <i class="fa-solid fa-calendar-days"></i>
+                        Added Semesters
+                    </h3>
+
+                    <div class="table-wrapper">
+                        <table id="cgpaTable">
+                            <thead>
+                                <tr>
+                                    <th>Semester</th>
+                                    <th>GPA</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="result-box green">
+                        <span>
+                            <i class="fa-solid fa-chart-simple"></i>
+                            CGPA (Overall)
+                        </span>
+
+                        <strong id="cgpaResult">0.00</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 <strong>EduCGPA</strong> | Built with ❤️ for students</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
