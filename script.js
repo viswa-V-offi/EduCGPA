@@ -1,193 +1,207 @@
-// =========================================
-// EduCGPA - GPA & CGPA Calculator
-// =========================================
+// ---- state ----
+let subjects = [];   // { id, name, grade, gradeLabel, credit }
+let semesters = [];  // { id, name, gpa }
+let editingSubjectId = null;
+let editingSemesterId = null;
+let nextId = 1;
 
-// ---------- DATA STORAGE ----------
-let subjects = [];
-let semesters = [];
+const gradeLabels = { "10": "O", "9": "A+", "8": "A", "7": "B+", "6": "B", "5": "C", "0": "U" };
 
-// =========================================
-// GPA SECTION
-// =========================================
+// ---- elements ----
+const subjectForm = document.getElementById('subjectForm');
+const subjectsBody = document.getElementById('subjectsBody');
+const gpaResult = document.getElementById('gpaResult');
+const subjectSubmitBtn = document.getElementById('subjectSubmitBtn');
+const resetGpaBtn = document.getElementById('resetGpaBtn');
 
-function addSubject() {
-    const name = document.getElementById("subjectName").value.trim();
-    const gradeSelect = document.getElementById("subjectGrade");
-    const gradePoint = parseFloat(gradeSelect.value);
-    const gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
-    const credit = parseFloat(document.getElementById("subjectCredit").value);
+const semesterForm = document.getElementById('semesterForm');
+const semestersBody = document.getElementById('semestersBody');
+const cgpaResult = document.getElementById('cgpaResult');
+const semesterSubmitBtn = document.getElementById('semesterSubmitBtn');
+const resetCgpaBtn = document.getElementById('resetCgpaBtn');
 
-    if (!name || isNaN(credit) || credit <= 0) {
-        alert("Please enter a valid subject name and credit points.");
-        return;
-    }
+const cgpaValue = document.getElementById('cgpaValue');
+const gaugeSub = document.getElementById('gaugeSub');
+const gaugeProgress = document.getElementById('gaugeProgress');
+const needle = document.getElementById('needle');
 
-    // Add subject object
-    subjects.push({
-        name: name,
-        gradeText: gradeText,
-        gradePoint: gradePoint,
-        credit: credit
-    });
+// ---- gauge setup ----
+const gaugeLength = gaugeProgress.getTotalLength();
+gaugeProgress.style.strokeDasharray = gaugeLength;
+gaugeProgress.style.strokeDashoffset = gaugeLength;
 
-    renderSubjects();
-
-    // Clear input fields
-    document.getElementById("subjectName").value = "";
-    document.getElementById("subjectCredit").value = "";
+function updateGauge(value) {
+  const clamped = Math.max(0, Math.min(10, value));
+  const fraction = clamped / 10;
+  gaugeProgress.style.strokeDashoffset = gaugeLength * (1 - fraction);
+  const angle = fraction * 180 - 90; // -90deg (left) to +90deg (right)
+  needle.style.transform = `rotate(${angle}deg)`;
+  cgpaValue.textContent = clamped.toFixed(2);
 }
 
+// ---- subjects (GPA) ----
 function renderSubjects() {
-    const tbody = document.querySelector("#gpaTable tbody");
-    tbody.innerHTML = "";
+  if (subjects.length === 0) {
+    subjectsBody.innerHTML = '<tr class="empty-row"><td colspan="4">No subjects added yet.</td></tr>';
+  } else {
+    subjectsBody.innerHTML = subjects.map(s => `
+      <tr>
+        <td>${escapeHtml(s.name)}</td>
+        <td><span class="pill">${s.gradeLabel}</span></td>
+        <td>${s.credit}</td>
+        <td class="row-actions">
+          <button class="icon-btn edit" data-id="${s.id}" data-type="subject" aria-label="Edit">✎</button>
+          <button class="icon-btn delete" data-id="${s.id}" data-type="subject" aria-label="Delete">✕</button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
-    subjects.forEach((sub, index) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${sub.name}</td>
-                <td>${sub.gradeText}</td>
-                <td>${sub.credit}</td>
-                <td>
-                    <button class="action-btn delete-btn"
-                            onclick="deleteSubject(${index})">
-                        ❌ Delete
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
+  const totalCredits = subjects.reduce((sum, s) => sum + s.credit, 0);
+  const totalPoints = subjects.reduce((sum, s) => sum + (s.grade * s.credit), 0);
+  const gpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
+  gpaResult.textContent = gpa.toFixed(2);
 }
 
-function deleteSubject(index) {
-    subjects.splice(index, 1);
-    renderSubjects();
-    calculateGPA();
-}
+subjectForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('subjectName').value.trim();
+  const grade = parseFloat(document.getElementById('subjectGrade').value);
+  const credit = parseFloat(document.getElementById('subjectCredit').value);
+  if (!name || isNaN(credit) || credit < 0) return;
 
-function calculateGPA() {
-    if (subjects.length === 0) {
-        document.getElementById("gpaResult").textContent = "0.00";
-        return;
+  if (editingSubjectId !== null) {
+    const s = subjects.find(x => x.id === editingSubjectId);
+    s.name = name; s.grade = grade; s.gradeLabel = gradeLabels[grade]; s.credit = credit;
+    editingSubjectId = null;
+    subjectSubmitBtn.textContent = 'Add';
+    subjectSubmitBtn.classList.remove('editing');
+  } else {
+    subjects.push({ id: nextId++, name, grade, gradeLabel: gradeLabels[grade], credit });
+  }
+
+  subjectForm.reset();
+  renderSubjects();
+});
+
+subjectsBody.addEventListener('click', (e) => {
+  const btn = e.target.closest('.icon-btn');
+  if (!btn) return;
+  const id = parseInt(btn.dataset.id);
+  if (btn.classList.contains('delete')) {
+    subjects = subjects.filter(s => s.id !== id);
+    if (editingSubjectId === id) {
+      editingSubjectId = null;
+      subjectForm.reset();
+      subjectSubmitBtn.textContent = 'Add';
+      subjectSubmitBtn.classList.remove('editing');
     }
-
-    let totalCredits = 0;
-    let totalPoints = 0;
-
-    subjects.forEach(sub => {
-        totalCredits += sub.credit;
-        totalPoints += sub.credit * sub.gradePoint;
-    });
-
-    const gpa = totalPoints / totalCredits;
-
-    document.getElementById("gpaResult").textContent = gpa.toFixed(2);
-}
-
-function resetGPA() {
-    subjects = [];
     renderSubjects();
+  } else if (btn.classList.contains('edit')) {
+    const s = subjects.find(x => x.id === id);
+    document.getElementById('subjectName').value = s.name;
+    document.getElementById('subjectGrade').value = s.grade;
+    document.getElementById('subjectCredit').value = s.credit;
+    editingSubjectId = id;
+    subjectSubmitBtn.textContent = 'Update';
+    subjectSubmitBtn.classList.add('editing');
+  }
+});
 
-    document.getElementById("gpaResult").textContent = "0.00";
-    document.getElementById("subjectName").value = "";
-    document.getElementById("subjectCredit").value = "";
-}
+resetGpaBtn.addEventListener('click', () => {
+  subjects = [];
+  editingSubjectId = null;
+  subjectForm.reset();
+  subjectSubmitBtn.textContent = 'Add';
+  subjectSubmitBtn.classList.remove('editing');
+  renderSubjects();
+});
 
-// =========================================
-// CGPA SECTION
-// =========================================
-
-function addSemester() {
-    const name = document.getElementById("semesterName").value.trim();
-    const gpa = parseFloat(document.getElementById("semesterGPA").value);
-
-    if (!name || isNaN(gpa) || gpa < 0 || gpa > 10) {
-        alert("Please enter a valid semester name and GPA (0 - 10).");
-        return;
-    }
-
-    semesters.push({
-        name: name,
-        gpa: gpa
-    });
-
-    renderSemesters();
-
-    // Clear inputs
-    document.getElementById("semesterName").value = "";
-    document.getElementById("semesterGPA").value = "";
-}
-
+// ---- semesters (CGPA) ----
 function renderSemesters() {
-    const tbody = document.querySelector("#cgpaTable tbody");
-    tbody.innerHTML = "";
+  if (semesters.length === 0) {
+    semestersBody.innerHTML = '<tr class="empty-row"><td colspan="3">No semesters added yet.</td></tr>';
+  } else {
+    semestersBody.innerHTML = semesters.map(s => `
+      <tr>
+        <td>${escapeHtml(s.name)}</td>
+        <td>${s.gpa.toFixed(2)}</td>
+        <td class="row-actions">
+          <button class="icon-btn edit" data-id="${s.id}" data-type="semester" aria-label="Edit">✎</button>
+          <button class="icon-btn delete" data-id="${s.id}" data-type="semester" aria-label="Delete">✕</button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
-    semesters.forEach((sem, index) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${sem.name}</td>
-                <td>${sem.gpa.toFixed(2)}</td>
-                <td>
-                    <button class="action-btn delete-btn"
-                            onclick="deleteSemester(${index})">
-                        ❌ Delete
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
+  const cgpa = semesters.length > 0
+    ? semesters.reduce((sum, s) => sum + s.gpa, 0) / semesters.length
+    : 0;
+  cgpaResult.textContent = cgpa.toFixed(2);
+  updateGauge(cgpa);
+  gaugeSub.textContent = semesters.length > 0
+    ? `Averaged across ${semesters.length} semester${semesters.length > 1 ? 's' : ''}`
+    : 'Add semesters to see your CGPA';
 }
 
-function deleteSemester(index) {
-    semesters.splice(index, 1);
-    renderSemesters();
-    calculateCGPA();
-}
+semesterForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('semesterName').value.trim();
+  const gpa = parseFloat(document.getElementById('semesterGpa').value);
+  if (!name || isNaN(gpa) || gpa < 0 || gpa > 10) return;
 
-function calculateCGPA() {
-    if (semesters.length === 0) {
-        document.getElementById("cgpaResult").textContent = "0.00";
-        return;
+  if (editingSemesterId !== null) {
+    const s = semesters.find(x => x.id === editingSemesterId);
+    s.name = name; s.gpa = gpa;
+    editingSemesterId = null;
+    semesterSubmitBtn.textContent = 'Add';
+    semesterSubmitBtn.classList.remove('editing');
+  } else {
+    semesters.push({ id: nextId++, name, gpa });
+  }
+
+  semesterForm.reset();
+  renderSemesters();
+});
+
+semestersBody.addEventListener('click', (e) => {
+  const btn = e.target.closest('.icon-btn');
+  if (!btn) return;
+  const id = parseInt(btn.dataset.id);
+  if (btn.classList.contains('delete')) {
+    semesters = semesters.filter(s => s.id !== id);
+    if (editingSemesterId === id) {
+      editingSemesterId = null;
+      semesterForm.reset();
+      semesterSubmitBtn.textContent = 'Add';
+      semesterSubmitBtn.classList.remove('editing');
     }
+    renderSemesters();
+  } else if (btn.classList.contains('edit')) {
+    const s = semesters.find(x => x.id === id);
+    document.getElementById('semesterName').value = s.name;
+    document.getElementById('semesterGpa').value = s.gpa;
+    editingSemesterId = id;
+    semesterSubmitBtn.textContent = 'Update';
+    semesterSubmitBtn.classList.add('editing');
+  }
+});
 
-    let totalGPA = 0;
+resetCgpaBtn.addEventListener('click', () => {
+  semesters = [];
+  editingSemesterId = null;
+  semesterForm.reset();
+  semesterSubmitBtn.textContent = 'Add';
+  semesterSubmitBtn.classList.remove('editing');
+  renderSemesters();
+});
 
-    semesters.forEach(sem => {
-        totalGPA += sem.gpa;
-    });
-
-    const cgpa = totalGPA / semesters.length;
-
-    document.getElementById("cgpaResult").textContent = cgpa.toFixed(2);
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
-function resetCGPA() {
-    semesters = [];
-    renderSemesters();
-
-    document.getElementById("cgpaResult").textContent = "0.00";
-    document.getElementById("semesterName").value = "";
-    document.getElementById("semesterGPA").value = "";
-}
-
-// =========================================
-// OPTIONAL: SAMPLE DATA FOR TESTING
-// Remove this section if you don't want demo data
-// =========================================
-
-window.onload = function () {
-    subjects = [
-        { name: "Maths", gradeText: "A+ (9.00)", gradePoint: 9, credit: 4 },
-        { name: "Science", gradeText: "A (8.00)", gradePoint: 8, credit: 3 }
-    ];
-
-    semesters = [
-        { name: "Semester 1", gpa: 7.10 },
-        { name: "Semester 2", gpa: 8.50 }
-    ];
-
-    renderSubjects();
-    renderSemesters();
-
-    calculateGPA();
-    calculateCGPA();
-};
+// ---- init ----
+renderSubjects();
+renderSemesters();

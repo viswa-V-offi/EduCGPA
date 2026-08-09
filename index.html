@@ -1,187 +1,519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduCGPA — Smart GPA &amp; CGPA Calculator</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE2MkIiLz4KICA8cGF0aCBkPSJNMTAsNDQgQTIyLDIyIDAgMCwxIDU0LDQ0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyQTM0NTkiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTEwLDQ0IEEyMiwyMiAwIDAsMSA0MiwyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM0ZEMUM4IiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIHgxPSIzMiIgeTE9IjQ0IiB4Mj0iNDUiIHkyPSIyNCIgc3Ryb2tlPSIjRThBMzNEIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iNDQiIHI9IjQiIGZpbGw9IiNFOEEzM0QiLz4KPC9zdmc+Cg==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #10162B;
+  --card: #171F3B;
+  --line: #2A3459;
+  --txt: #E7E9F5;
+  --sub: #8891B5;
+  --cyan: #3FD1C8;
+  --amber: #E8A33D;
+  --danger: #E8586B;
+  --field: #0E1428;
+}
 
-    <title>EduCGPA - Smart GPA & CGPA Calculator</title>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <!-- Webpage Icon (Favicon) -->
-    <link rel="icon" type="image/svg+xml"
-          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M32 6 4 20l28 14 22-11v15h4V20L32 6zm-14 24v10c0 6 8 12 14 12s14-6 14-12V30L32 39 18 30z'/%3E%3C/svg%3E">
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Space Grotesk', sans-serif;
+  padding: 40px 20px 80px;
+}
 
-    <link rel="stylesheet" href="style.css">
+.wrap { max-width: 680px; margin: 0 auto; }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+.top { margin-bottom: 32px; }
+.top h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.top p { color: var(--sub); font-size: 14px; margin-top: 4px; }
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+/* ---- gauge ---- */
+.gauge-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.gauge-track { stroke: var(--line); }
+.gauge-progress { stroke: var(--cyan); transition: stroke-dashoffset 0.5s ease; }
+#needle { stroke: var(--amber); transform-origin: 70px 80px; transition: transform 0.5s ease; }
+#needleGroup circle { fill: var(--amber); }
+
+.gauge-label {
+  color: var(--sub);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+.gauge-num { font-family: 'IBM Plex Mono', monospace; font-size: 40px; font-weight: 600; }
+.gauge-max { font-size: 16px; color: var(--sub); font-weight: 400; }
+.gauge-sub { color: var(--cyan); font-size: 13px; margin-top: 8px; }
+
+/* ---- cards ---- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.card h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.card .sub { color: var(--sub); font-size: 13px; margin-bottom: 20px; }
+
+/* ---- forms ---- */
+.row-input {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+input, select {
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--txt);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+
+input::placeholder { color: var(--sub); }
+input:focus, select:focus { border-color: var(--cyan); }
+
+.add-btn {
+  background: var(--cyan);
+  color: #04211E;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 16px;
+  transition: opacity 0.15s;
+}
+.add-btn:hover { opacity: 0.88; }
+
+.add-btn.editing { background: var(--amber); }
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--sub);
+  border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.ghost-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+.actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+
+/* ---- tables ---- */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+thead th {
+  text-align: left;
+  color: var(--sub);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 10px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--line);
+}
+
+tbody td {
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+tbody td:first-child { font-family: 'Space Grotesk', sans-serif; }
+
+.empty-row td {
+  color: var(--sub);
+  font-family: 'Space Grotesk', sans-serif;
+  text-align: center;
+  padding: 20px 0;
+  font-style: italic;
+}
+
+.pill {
+  display: inline-block;
+  background: rgba(63,209,200,0.15);
+  color: var(--cyan);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.row-actions { text-align: right; white-space: nowrap; }
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--sub);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.icon-btn:hover { color: var(--cyan); }
+.icon-btn.delete:hover { color: var(--danger); }
+
+/* ---- result ---- */
+.result-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+.result-strip .label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--sub); }
+.result-strip .val { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--cyan); }
+
+.foot { text-align: center; color: var(--sub); font-size: 11px; margin-top: 40px; }
+
+/* ---- responsive ---- */
+@media (max-width: 520px) {
+  .row-input { grid-template-columns: 1fr 1fr; }
+  .row-input .add-btn { grid-column: span 2; padding: 10px; }
+  .gauge-card { flex-direction: column; text-align: center; }
+}
+
+</style>
 </head>
-
 <body>
 
-    <!-- HERO SECTION -->
-    <header class="hero">
-        <div class="hero-content">
-            <h1>
-                <i class="fa-solid fa-graduation-cap"></i>
-                EduCGPA
-            </h1>
+<div class="wrap">
 
-            <p>Calculate. Track. Achieve.</p>
-        </div>
-    </header>
+  <header class="top">
+    <div>
+      <h1>EduCGPA</h1>
+      <p>Calculate. Track. Achieve.</p>
+    </div>
+  </header>
 
-    <main class="container">
+  <section class="gauge-card">
+    <svg id="gaugeSvg" width="160" height="100" viewBox="0 0 140 90">
+      <path class="gauge-track" d="M10,80 A60,60 0 0,1 130,80" fill="none" stroke-width="10" stroke-linecap="round"/>
+      <path id="gaugeProgress" class="gauge-progress" d="M10,80 A60,60 0 0,1 130,80" fill="none" stroke-width="10" stroke-linecap="round"/>
+      <g id="needleGroup">
+        <line id="needle" x1="70" y1="80" x2="70" y2="26" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="70" cy="80" r="5"/>
+      </g>
+    </svg>
+    <div>
+      <div class="gauge-label">Overall CGPA</div>
+      <div class="gauge-num"><span id="cgpaValue">0.00</span><span class="gauge-max"> / 10</span></div>
+      <div class="gauge-sub" id="gaugeSub">Add semesters to see your CGPA</div>
+    </div>
+  </section>
 
-        <!-- GPA SECTION -->
-        <section class="card gpa-card">
-            <div class="card-header">
-                <i class="fa-solid fa-book-open"></i>
+  <section class="card">
+    <h2>GPA calculator</h2>
+    <p class="sub">Calculate your semester GPA using subject grade and credit points.</p>
 
-                <div>
-                    <h2>GPA Calculator</h2>
-                    <p>Calculate your semester GPA using subject grade and credit points.</p>
-                </div>
-            </div>
+    <form id="subjectForm" class="row-input">
+      <input type="text" id="subjectName" placeholder="Subject name" required>
+      <select id="subjectGrade">
+        <option value="10">O (10.00)</option>
+        <option value="9">A+ (9.00)</option>
+        <option value="8">A (8.00)</option>
+        <option value="7">B+ (7.00)</option>
+        <option value="6">B (6.00)</option>
+        <option value="5">C (5.00)</option>
+        <option value="0">U (0.00)</option>
+      </select>
+      <input type="number" id="subjectCredit" placeholder="Credit" min="0" step="0.5" required>
+      <button type="submit" class="add-btn" id="subjectSubmitBtn">Add</button>
+    </form>
 
-            <div class="calculator-grid">
+    <table>
+      <thead>
+        <tr><th>Subject</th><th>Grade</th><th>Credit</th><th></th></tr>
+      </thead>
+      <tbody id="subjectsBody">
+        <tr class="empty-row"><td colspan="4">No subjects added yet.</td></tr>
+      </tbody>
+    </table>
 
-                <div class="form-panel">
-                    <label>Subject</label>
-                    <input type="text" id="subjectName" placeholder="Enter subject name">
+    <div class="result-strip">
+      <span class="label">GPA (semester)</span>
+      <span class="val" id="gpaResult">0.00</span>
+    </div>
 
-                    <label>Grade</label>
-                    <select id="subjectGrade">
-                        <option value="10">O (10.00)</option>
-                        <option value="9">A+ (9.00)</option>
-                        <option value="8">A (8.00)</option>
-                        <option value="7">B+ (7.00)</option>
-                        <option value="6">B (6.00)</option>
-                        <option value="5">C (5.00)</option>
-                        <option value="0">U (0.00)</option>
-                    </select>
+    <div class="actions">
+      <button type="button" class="ghost-btn" id="resetGpaBtn">Reset</button>
+    </div>
+  </section>
 
-                    <label>Credit</label>
-                    <input type="number" id="subjectCredit" placeholder="Enter credit points">
+  <section class="card">
+    <h2>CGPA calculator</h2>
+    <p class="sub">Calculate your overall CGPA using semester GPA values.</p>
 
-                    <button class="primary-btn" onclick="addSubject()">
-                        <i class="fa-solid fa-plus"></i>
-                        Add / Update Subject
-                    </button>
-                </div>
+    <form id="semesterForm" class="row-input">
+      <input type="text" id="semesterName" placeholder="Semester" required>
+      <input type="number" id="semesterGpa" placeholder="GPA" min="0" max="10" step="0.01" required>
+      <div></div>
+      <button type="submit" class="add-btn" id="semesterSubmitBtn">Add</button>
+    </form>
 
-                <div class="table-panel">
-                    <h3>
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        Added Subjects
-                    </h3>
+    <table>
+      <thead>
+        <tr><th>Semester</th><th>GPA</th><th></th></tr>
+      </thead>
+      <tbody id="semestersBody">
+        <tr class="empty-row"><td colspan="3">No semesters added yet.</td></tr>
+      </tbody>
+    </table>
 
-                    <div class="table-wrapper">
-                        <table id="gpaTable">
-                            <thead>
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>Grade</th>
-                                    <th>Credit</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
+    <div class="result-strip">
+      <span class="label">CGPA (overall)</span>
+      <span class="val" id="cgpaResult">0.00</span>
+    </div>
 
-                            <tbody></tbody>
-                        </table>
-                    </div>
+    <div class="actions">
+      <button type="button" class="ghost-btn" id="resetCgpaBtn">Reset</button>
+    </div>
+  </section>
 
-                    <div class="result-box blue">
-                        <span>
-                            <i class="fa-solid fa-chart-pie"></i>
-                            GPA (Semester)
-                        </span>
+  <footer class="foot">© 2026 EduCGPA — built for students</footer>
 
-                        <strong id="gpaResult">0.00</strong>
-                    </div>
+</div>
 
-                    <div class="button-row">
-                        <button class="primary-btn" onclick="calculateGPA()">
-                            <i class="fa-solid fa-calculator"></i>
-                            Calculate GPA
-                        </button>
+<script>
+// ---- state ----
+let subjects = [];   // { id, name, grade, gradeLabel, credit }
+let semesters = [];  // { id, name, gpa }
+let editingSubjectId = null;
+let editingSemesterId = null;
+let nextId = 1;
 
-                        <button class="secondary-btn" onclick="resetGPA()">
-                            <i class="fa-solid fa-rotate-right"></i>
-                            Reset
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
+const gradeLabels = { "10": "O", "9": "A+", "8": "A", "7": "B+", "6": "B", "5": "C", "0": "U" };
 
-        <!-- CGPA SECTION -->
-        <section class="card cgpa-card">
-            <div class="card-header">
-                <i class="fa-solid fa-chart-line"></i>
+// ---- elements ----
+const subjectForm = document.getElementById('subjectForm');
+const subjectsBody = document.getElementById('subjectsBody');
+const gpaResult = document.getElementById('gpaResult');
+const subjectSubmitBtn = document.getElementById('subjectSubmitBtn');
+const resetGpaBtn = document.getElementById('resetGpaBtn');
 
-                <div>
-                    <h2>CGPA Calculator</h2>
-                    <p>Calculate your overall CGPA using semester GPA values.</p>
-                </div>
-            </div>
+const semesterForm = document.getElementById('semesterForm');
+const semestersBody = document.getElementById('semestersBody');
+const cgpaResult = document.getElementById('cgpaResult');
+const semesterSubmitBtn = document.getElementById('semesterSubmitBtn');
+const resetCgpaBtn = document.getElementById('resetCgpaBtn');
 
-            <div class="calculator-grid">
+const cgpaValue = document.getElementById('cgpaValue');
+const gaugeSub = document.getElementById('gaugeSub');
+const gaugeProgress = document.getElementById('gaugeProgress');
+const needle = document.getElementById('needle');
 
-                <div class="form-panel">
-                    <label>Semester</label>
-                    <input type="text" id="semesterName" placeholder="e.g., Semester 1">
+// ---- gauge setup ----
+const gaugeLength = gaugeProgress.getTotalLength();
+gaugeProgress.style.strokeDasharray = gaugeLength;
+gaugeProgress.style.strokeDashoffset = gaugeLength;
 
-                    <label>GPA</label>
-                    <input type="number" id="semesterGPA" step="0.01" placeholder="e.g., 7.85">
+function updateGauge(value) {
+  const clamped = Math.max(0, Math.min(10, value));
+  const fraction = clamped / 10;
+  gaugeProgress.style.strokeDashoffset = gaugeLength * (1 - fraction);
+  const angle = fraction * 180 - 90; // -90deg (left) to +90deg (right)
+  needle.style.transform = `rotate(${angle}deg)`;
+  cgpaValue.textContent = clamped.toFixed(2);
+}
 
-                    <button class="success-btn" onclick="addSemester()">
-                        <i class="fa-solid fa-plus"></i>
-                        Add / Update Semester GPA
-                    </button>
-                </div>
+// ---- subjects (GPA) ----
+function renderSubjects() {
+  if (subjects.length === 0) {
+    subjectsBody.innerHTML = '<tr class="empty-row"><td colspan="4">No subjects added yet.</td></tr>';
+  } else {
+    subjectsBody.innerHTML = subjects.map(s => `
+      <tr>
+        <td>${escapeHtml(s.name)}</td>
+        <td><span class="pill">${s.gradeLabel}</span></td>
+        <td>${s.credit}</td>
+        <td class="row-actions">
+          <button class="icon-btn edit" data-id="${s.id}" data-type="subject" aria-label="Edit">✎</button>
+          <button class="icon-btn delete" data-id="${s.id}" data-type="subject" aria-label="Delete">✕</button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
-                <div class="table-panel">
-                    <h3>
-                        <i class="fa-solid fa-calendar-days"></i>
-                        Added Semesters
-                    </h3>
+  const totalCredits = subjects.reduce((sum, s) => sum + s.credit, 0);
+  const totalPoints = subjects.reduce((sum, s) => sum + (s.grade * s.credit), 0);
+  const gpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
+  gpaResult.textContent = gpa.toFixed(2);
+}
 
-                    <div class="table-wrapper">
-                        <table id="cgpaTable">
-                            <thead>
-                                <tr>
-                                    <th>Semester</th>
-                                    <th>GPA</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
+subjectForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('subjectName').value.trim();
+  const grade = parseFloat(document.getElementById('subjectGrade').value);
+  const credit = parseFloat(document.getElementById('subjectCredit').value);
+  if (!name || isNaN(credit) || credit < 0) return;
 
-                            <tbody></tbody>
-                        </table>
-                    </div>
+  if (editingSubjectId !== null) {
+    const s = subjects.find(x => x.id === editingSubjectId);
+    s.name = name; s.grade = grade; s.gradeLabel = gradeLabels[grade]; s.credit = credit;
+    editingSubjectId = null;
+    subjectSubmitBtn.textContent = 'Add';
+    subjectSubmitBtn.classList.remove('editing');
+  } else {
+    subjects.push({ id: nextId++, name, grade, gradeLabel: gradeLabels[grade], credit });
+  }
 
-                    <div class="result-box green">
-                        <span>
-                            <i class="fa-solid fa-chart-simple"></i>
-                            CGPA (Overall)
-                        </span>
+  subjectForm.reset();
+  renderSubjects();
+});
 
-                        <strong id="cgpaResult">0.00</strong>
-                    </div>
-                </div>
-            </div>
-        </section>
+subjectsBody.addEventListener('click', (e) => {
+  const btn = e.target.closest('.icon-btn');
+  if (!btn) return;
+  const id = parseInt(btn.dataset.id);
+  if (btn.classList.contains('delete')) {
+    subjects = subjects.filter(s => s.id !== id);
+    if (editingSubjectId === id) {
+      editingSubjectId = null;
+      subjectForm.reset();
+      subjectSubmitBtn.textContent = 'Add';
+      subjectSubmitBtn.classList.remove('editing');
+    }
+    renderSubjects();
+  } else if (btn.classList.contains('edit')) {
+    const s = subjects.find(x => x.id === id);
+    document.getElementById('subjectName').value = s.name;
+    document.getElementById('subjectGrade').value = s.grade;
+    document.getElementById('subjectCredit').value = s.credit;
+    editingSubjectId = id;
+    subjectSubmitBtn.textContent = 'Update';
+    subjectSubmitBtn.classList.add('editing');
+  }
+});
 
-    </main>
+resetGpaBtn.addEventListener('click', () => {
+  subjects = [];
+  editingSubjectId = null;
+  subjectForm.reset();
+  subjectSubmitBtn.textContent = 'Add';
+  subjectSubmitBtn.classList.remove('editing');
+  renderSubjects();
+});
 
-    <footer class="footer">
-        <p>© 2026 <strong>EduCGPA</strong> | Built with ❤️ for students</p>
-    </footer>
+// ---- semesters (CGPA) ----
+function renderSemesters() {
+  if (semesters.length === 0) {
+    semestersBody.innerHTML = '<tr class="empty-row"><td colspan="3">No semesters added yet.</td></tr>';
+  } else {
+    semestersBody.innerHTML = semesters.map(s => `
+      <tr>
+        <td>${escapeHtml(s.name)}</td>
+        <td>${s.gpa.toFixed(2)}</td>
+        <td class="row-actions">
+          <button class="icon-btn edit" data-id="${s.id}" data-type="semester" aria-label="Edit">✎</button>
+          <button class="icon-btn delete" data-id="${s.id}" data-type="semester" aria-label="Delete">✕</button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
-    <script src="script.js"></script>
+  const cgpa = semesters.length > 0
+    ? semesters.reduce((sum, s) => sum + s.gpa, 0) / semesters.length
+    : 0;
+  cgpaResult.textContent = cgpa.toFixed(2);
+  updateGauge(cgpa);
+  gaugeSub.textContent = semesters.length > 0
+    ? `Averaged across ${semesters.length} semester${semesters.length > 1 ? 's' : ''}`
+    : 'Add semesters to see your CGPA';
+}
+
+semesterForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('semesterName').value.trim();
+  const gpa = parseFloat(document.getElementById('semesterGpa').value);
+  if (!name || isNaN(gpa) || gpa < 0 || gpa > 10) return;
+
+  if (editingSemesterId !== null) {
+    const s = semesters.find(x => x.id === editingSemesterId);
+    s.name = name; s.gpa = gpa;
+    editingSemesterId = null;
+    semesterSubmitBtn.textContent = 'Add';
+    semesterSubmitBtn.classList.remove('editing');
+  } else {
+    semesters.push({ id: nextId++, name, gpa });
+  }
+
+  semesterForm.reset();
+  renderSemesters();
+});
+
+semestersBody.addEventListener('click', (e) => {
+  const btn = e.target.closest('.icon-btn');
+  if (!btn) return;
+  const id = parseInt(btn.dataset.id);
+  if (btn.classList.contains('delete')) {
+    semesters = semesters.filter(s => s.id !== id);
+    if (editingSemesterId === id) {
+      editingSemesterId = null;
+      semesterForm.reset();
+      semesterSubmitBtn.textContent = 'Add';
+      semesterSubmitBtn.classList.remove('editing');
+    }
+    renderSemesters();
+  } else if (btn.classList.contains('edit')) {
+    const s = semesters.find(x => x.id === id);
+    document.getElementById('semesterName').value = s.name;
+    document.getElementById('semesterGpa').value = s.gpa;
+    editingSemesterId = id;
+    semesterSubmitBtn.textContent = 'Update';
+    semesterSubmitBtn.classList.add('editing');
+  }
+});
+
+resetCgpaBtn.addEventListener('click', () => {
+  semesters = [];
+  editingSemesterId = null;
+  semesterForm.reset();
+  semesterSubmitBtn.textContent = 'Add';
+  semesterSubmitBtn.classList.remove('editing');
+  renderSemesters();
+});
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---- init ----
+renderSubjects();
+renderSemesters();
+
+</script>
 </body>
 </html>
